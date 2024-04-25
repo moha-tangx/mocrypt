@@ -1,0 +1,19 @@
+{
+  "name": "mocrypt",
+  "version": "1.0.0",
+  "description": "module for data encryption",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --env-file .env ./index.js",
+    "start": "node --env-file .env ./index.js"
+  },
+  "keywords": [
+    "encryption",
+    "data encryption",
+    "security",
+    "data protection"
+  ],
+  "author": "moha_tangx",
+  "license": "ISC"
+}
