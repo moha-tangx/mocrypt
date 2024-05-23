@@ -12,7 +12,10 @@
     "encryption",
     "data encryption",
     "security",
-    "data protection"
+    "data protection",
+    "hashing",
+    "jwt",
+    "jsonwebtoken"
   ],
   "author": "moha_tangx",
   "license": "ISC"

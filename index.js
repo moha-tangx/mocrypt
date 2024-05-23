@@ -14,6 +14,13 @@ import {
 
 import { sign, verify } from "./app/sign.js";
 
+import {
+  symmetricEncrypt,
+  symmetricDecrypt,
+  encrypt,
+  decrypt,
+} from "./app/encrypt.js";
+
 export {
   hashSync,
   compareSync,
@@ -27,6 +34,10 @@ export {
   verify,
   createToken,
   verifyToken,
+  symmetricEncrypt,
+  symmetricDecrypt,
+  encrypt,
+  decrypt,
 };
 
 export default {
@@ -42,8 +53,6 @@ export default {
   verify,
   createToken,
   verifyToken,
+  encrypt,
+  decrypt,
 };
-
-createKeyPair((privateKey, publicKey) => {
-  console.log(privateKey, publicKey);
-});

@@ -16,16 +16,16 @@ import { createSign, createVerify } from "crypto";
  * @param {string} [algorithm="rsa-sha256"] the signing algorithm default to **rsa-sha256**
  * @returns {string}
  * @example
- * const keys = createKeysSync(128);
+ * const keys = createKeyPairSync();
 const { privateKey, publicKey } = keys;
 
 let cookie = "some cookie to be sent to the user";
 
 const signature = Sign(cookie, privateKey);
-const isVerified = verify(cookie, publicKey, signature);
-console.log(isVerified);
+
+console.log(signature);
 // prints
-// true
+// some cookie to be sent to the user:1cac5e9751ca06feed37ff0894b7f5d9a1f9b51...14544bf6a15ebf5a034faffb2824e04c816a4c7ce76af89be78a2382e79ef5d933751da82b3d46a100e5914b16b604af08c8f4afe3c5d269d90cc9a0
  */
 export function sign(
   payload,
@@ -42,34 +42,30 @@ export function sign(
 // VERIFY
 /**
  * @description
- * verifies a  signature ( signed string) with a public key
+ * verifies a  signature ( signed string) with a public key a private key can also be used to verify the signature
  * @author moha_tangx
  * @date 17/02/2024
- * @param {string} token
- * @param {import("crypto").KeyLike|import("crypto").JsonWebKeyInput} publicKey
+ * @param {string} token  includes the initial string and the signature
+ * @param {import("crypto").KeyLike|import("crypto").JsonWebKeyInput} Key the public key or private key of the privatekey keyPair used in signing the string 
  * @param {string} [algorithm="rsa-sha256"]
  * @param {import("crypto").BinaryToTextEncoding} [encoding="hex"]
  * @return {boolean}
  * @example
- * const keys = createKeysSync(128);
+ * const keys = createKeyPairSync();
 const { privateKey, publicKey } = keys;
 
-let cookie = "some cookie sent to the user";
+let cookie = "some cookie to be sent to the user";
 
-const signature = Sign(cookie, privateKey);
-const isVerified = verify(cookie, publicKey, signature);
+const signature = sign(cookie, privateKey);
+const isVerified = verify(signature, publicKey);
+console.log(signature);
 console.log(isVerified);
 // prints
 // true
  */
-export function verify(
-  token,
-  publicKey,
-  algorithm = "rsa-sha256",
-  encoding = "hex"
-) {
+export function verify(token, Key, algorithm = "rsa-sha256", encoding = "hex") {
   const [payload, signature] = token.split(":");
   const verifier = createVerify(algorithm).update(payload);
-  const isVerified = verifier.verify(publicKey, signature, encoding);
+  const isVerified = verifier.verify(Key, signature, encoding);
   return isVerified;
 }
