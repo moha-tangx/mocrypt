@@ -13,9 +13,8 @@ import { createVerify } from "node:crypto";
 const payload =
   "street known powder plates wall produce tip congress without balloon sand political note hurried combination choice buried particular radio feathers sale closely widely sudden";
 
-const id = { id: "1751af46-ec16-5b6b-b130-7caab8c8d3aa" };
 
-const token = createToken(id, payload, privateKey, "24hrs");
+const token = createToken(payload, privateKey,{exp_date:"24hrs"});
 
 console.log(token);
 
@@ -38,10 +37,13 @@ export function createToken(
 ) {
   const expDate =
     exp_date && Buffer.from(createDate(exp_date).toString()).toString(encoding);
+  payload = JSON.stringify(payload);
   const signed = sign(payload, key, {
     algorithm,
     encoding,
-  }).split(":")[1];
+  })
+    .split(":")
+    .at(-1);
   const encodedPayload = Buffer.from(payload).toString(encoding);
   const token = expDate
     ? `${encodedPayload}.${signed}.${expDate}`
@@ -50,8 +52,7 @@ export function createToken(
 }
 
 /**
- *@description  verifies a jsonwebtoken created by the createToken function and returns a verifier function in the format of  `{
-    id: any: id passed,
+ *@description  verifies a jsonwebtoken created by the createToken function and returns a verifier object in the format of  `{
     exp_date: dateObject :the expiry date of the token,
     expired: boolean :if the token has expired or not,
     verified: boolean :if the token is valid or not,
@@ -60,47 +61,42 @@ export function createToken(
     const payload =
       "street known powder plates wall produce tip congress without balloon sand political note hurried combination choice buried particular radio feathers sale closely widely sudden";
 
-    const id = { id: "1751af46-ec16-5b6b-b130-7caab8c8d3aa" };
+    const token = createToken(payload, privateKey, "24hrs");
 
-    const token = createToken(id, payload, privateKey, "24hrs");
-
-    const verifier = verifyToken(token, privateKey, () => payload);
+    const verifier = verifyToken(token, privateKey, {payload});
 
     console.log(verifier);
 
     //logs
 
     // {
-    //   id: { id: '1751af46-ec16-5b6b-b130-7caab8c8d3aa' },
     //   exp_date: 2024-04-26T18:20:03.000Z,
     //   expired: false,
     //   verified: true
     // }
  * @param {string} token a jsonwebtoken created by the {@link createToken} function
  * @param {import("crypto").KeyLike} key this could be a private key or a public key
- * @param {*} payload 
- * //@param {()=>string} callBack the callback takes the verified token as a parameter if you need to do some operations to get the secret payload or ignore the id parameter and return the secret payload
- * @param {{ algorithm :string, encoding :import("node:crypto").BinaryToTextEncoding }} options 
+ * @param {{ algorithm :string, encoding :import("node:crypto").BinaryToTextEncoding,payload:* }} options 
     */
 export function verifyToken(
   token,
   key,
-  payload,
-  { algorithm = "rsa-sha256", encoding = "hex" } = {
+  { algorithm = "rsa-sha256", encoding = "hex", payload = undefined } = {
     algorithm: "rsa-sha256",
     encoding: "hex",
+    payload: undefined,
   }
 ) {
   const [encodedPayload, signature, expDate] = token.split(".");
   if (!payload) {
     payload = Buffer.from(encodedPayload, encoding).toString("utf8");
   }
+  payload = JSON.stringify(payload);
   const exp = expDate && Buffer.from(expDate, encoding).toString("utf8");
   const exp_date = exp ? new Date(exp) : null;
   const verifier = createVerify(algorithm).update(payload);
   const verified = verifier.verify(key, signature, encoding);
   const expired = exp_date ? new Date() > exp_date : false;
-  console.log("date: ", exp);
   return {
     exp_date,
     expired,
