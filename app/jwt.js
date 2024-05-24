@@ -1,8 +1,9 @@
 // @ts-check
 "use strict";
 
-import { sign, verify } from "./sign.js";
+import { sign } from "./sign.js";
 import { createDate } from "./utils/utils.js";
+import { createVerify } from "node:crypto";
 
 /**
  * @description creates a jsonwebtoken with an id, payload and an expiry date. 
@@ -21,17 +22,30 @@ console.log(token);
 //logs
 //7b226964223a2231373531616634362d656331362d356236622d623133302d376361616238633864336161227d.7c6ca8....
  
- * @param {any} id
  * @param {any} payload
  * @param {import("crypto").KeyLike} key
- * @param {string|number} exp
+ * @param {{exp_date?:string|number|Date|undefined,algorithm?:string,encoding?:import("crypto").BinaryToTextEncoding}} options
  * @returns {string}
  */
-export function createToken(id, payload, key, exp) {
-  const identifier = Buffer.from(JSON.stringify(id)).toString("hex");
-  const expDate = Buffer.from(createDate(exp).toString()).toString("hex");
-  const signed = sign(payload, key).split(":")[1];
-  const token = `${identifier}.${signed}.${expDate}`;
+export function createToken(
+  payload,
+  key,
+  { exp_date = undefined, algorithm = "rsa-sha256", encoding = "hex" } = {
+    exp_date: undefined,
+    algorithm: "rsa-sha256",
+    encoding: "hex",
+  }
+) {
+  const expDate =
+    exp_date && Buffer.from(createDate(exp_date).toString()).toString(encoding);
+  const signed = sign(payload, key, {
+    algorithm,
+    encoding,
+  }).split(":")[1];
+  const encodedPayload = Buffer.from(payload).toString(encoding);
+  const token = expDate
+    ? `${encodedPayload}.${signed}.${expDate}`
+    : `${encodedPayload}.${signed}`;
   return token;
 }
 
@@ -64,20 +78,30 @@ export function createToken(id, payload, key, exp) {
     // }
  * @param {string} token a jsonwebtoken created by the {@link createToken} function
  * @param {import("crypto").KeyLike} key this could be a private key or a public key
- * @param {(id:any)=>string} callBack the callback takes the of the verified token as a parameter if you need to do     some operations to get the secret payload or ignore the id parameter and return the secret payload
- */
-export function verifyToken(token, key, callBack) {
-  const [identifier, signature, expDate] = token.split("."),
-    id = Buffer.from(identifier, "hex").toString("utf-8"),
-    exp = Buffer.from(expDate, "hex").toString("utf-8"),
-    secret = callBack(JSON.parse(id)),
-    payload = `${secret}:${signature}`,
-    exp_date = new Date(exp),
-    verified = verify(payload, key),
-    expired = new Date() > exp_date;
-
+ * @param {*} payload 
+ * //@param {()=>string} callBack the callback takes the verified token as a parameter if you need to do some operations to get the secret payload or ignore the id parameter and return the secret payload
+ * @param {{ algorithm :string, encoding :import("node:crypto").BinaryToTextEncoding }} options 
+    */
+export function verifyToken(
+  token,
+  key,
+  payload,
+  { algorithm = "rsa-sha256", encoding = "hex" } = {
+    algorithm: "rsa-sha256",
+    encoding: "hex",
+  }
+) {
+  const [encodedPayload, signature, expDate] = token.split(".");
+  if (!payload) {
+    payload = Buffer.from(encodedPayload, encoding).toString("utf8");
+  }
+  const exp = expDate && Buffer.from(expDate, encoding).toString("utf8");
+  const exp_date = exp ? new Date(exp) : null;
+  const verifier = createVerify(algorithm).update(payload);
+  const verified = verifier.verify(key, signature, encoding);
+  const expired = exp_date ? new Date() > exp_date : false;
+  console.log("date: ", exp);
   return {
-    id: JSON.parse(id),
     exp_date,
     expired,
     verified,
