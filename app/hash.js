@@ -1,6 +1,7 @@
 // @ts-check
 "use strict";
 
+import { error } from "console";
 import { randomBytes, scryptSync, timingSafeEqual, scrypt } from "crypto";
 
 /**
@@ -58,16 +59,24 @@ export function compareSync(hashed, plainText, encoding = "hex") {
  * @date 17/02/2024
  * @export
  * @param {import("crypto").BinaryLike} plainText string to be hashed
- * @param {BufferEncoding} [encoding="hex"] the returned hash encoding type
- * @param {number} [keylen=64] should be a multiple of 2
- * @param {(hash: string,err:Error|null|undefined) => void} callback
+  the returned hash encoding type
+  should be a multiple of 2
+  * @param {(hash: string,err:Error|null|undefined) => void} callback
+ * @param {{length:number,encoding:BufferEncoding}} options
  * @example hash("some data to hash", (hash) => console.log(hash))
  * // prints :
  * //a814993bf3e...9a56670b50fdcbcecea261:6e8daa7aebbf87736c8b15dd229365372d58072d0fe996360b5fa0586b14730da7a7d8bf61a0af8efa312fbdce4c8f69d9664333d0637c96667573e9dd5b7bc1
  */
-export async function hash(plainText, callback, keylen = 64, encoding = "hex") {
-  const salt = randomBytes(keylen).toString(encoding);
-  scrypt(plainText, salt, keylen, (err, hash) => {
+export async function hash(
+  plainText,
+  callback,
+  { length = 64, encoding = "hex" } = {
+    length: 64,
+    encoding: "hex",
+  }
+) {
+  const salt = randomBytes(length).toString(encoding);
+  scrypt(plainText, salt, length, (err, hash) => {
     if (err) throw err;
     callback(`${salt}:${hash.toString(encoding)}`, err);
   });
@@ -81,9 +90,9 @@ export async function hash(plainText, callback, keylen = 64, encoding = "hex") {
  * @date 17/02/2024
  * @param {string} plainText
  * @param {string} hashed
- * @param {number} [keylen=64]
- * @param {BufferEncoding} [encoding="hex"]
- * @return {Promise<boolean>}
+ * @param {(match:boolean,error:Error | null)=>*} callback
+ * @param {{length: number,encoding: BufferEncoding,}} options
+ * @return
  * @example const password = hashSync("myPassword_");
  * const isValidPassword = await compare("myPassword_",password)
  * console.log(validPassword);
@@ -91,14 +100,34 @@ export async function hash(plainText, callback, keylen = 64, encoding = "hex") {
  * // true
  */
 export async function compare(
-  plainText,
   hashed,
-  keylen = 64,
-  encoding = "hex"
+  plainText,
+  callback,
+  { length = 64, encoding = "hex" } = {
+    length: 64,
+    encoding: "hex",
+  }
 ) {
   const [salt, key] = hashed.split(":");
-  const hashedBuffer = scryptSync(plainText, salt, keylen);
-  const keyBuffer = Buffer.from(key, encoding);
-  const match = timingSafeEqual(hashedBuffer, keyBuffer);
-  return match;
+  /**
+   * @param {(match: boolean, error: Error | null) => void} callback
+   */
+  function comp(callback) {
+    scrypt(plainText, salt, length, (error, hashedBuffer) => {
+      const keyBuffer = Buffer.from(key, encoding);
+      const match = timingSafeEqual(hashedBuffer, keyBuffer);
+      callback(match, error);
+    });
+  }
+  if (!callback) {
+    return new Promise((resolve, reject) => {
+      comp((match, error) => {
+        if (error) reject(error);
+        resolve(match);
+      });
+    });
+  }
+  comp((match, error) => {
+    callback(match, error);
+  });
 }

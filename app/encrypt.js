@@ -1,3 +1,6 @@
+// @ts-check
+"use strict";
+
 import {
   randomBytes,
   createDecipheriv,
@@ -9,12 +12,12 @@ import {
 } from "crypto";
 
 /**
- * @description
+ * @description encrypts a plaintext (can be in any format) to a ciphered Text with a symmetric key
  * @author moha_tangx
  * @date 21/05/2024
- * @param {any} payload text to be encrypted
- * @param {string | Buffer | import("crypto").KeyLike} key
- * @param {{algorithm : string, inputEncoding : import("crypto").Encoding, outputEncoding:import("crypto").Encoding}}
+ * @param {any} payload text to be encrypted.
+ * @param {string | Buffer | import("crypto").KeyLike} key symmetric key can be generated from the createKey or createKeySync methods
+ * @param {{algorithm : string, inputEncoding : import("crypto").Encoding, outputEncoding:import("crypto").Encoding}} options an options object with the structure of : ```{algorithm: string, inputEncoding: import("crypto").Encoding, outputEncoding: import("crypto").Encoding}```
  * @return {string}
  * @example const plainText =
   "almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop";
@@ -29,9 +32,13 @@ console.log(encryptedMessage);
 export function symmetricEncrypt(
   payload,
   key,
-  { algorithm = "aes256", inputEncoding = "utf8", outputEncoding = "hex" } = {}
+  { algorithm = "aes256", inputEncoding = "utf8", outputEncoding = "hex" } = {
+    algorithm: "aes256",
+    inputEncoding: "utf8",
+    outputEncoding: "hex",
+  }
 ) {
-  if (!Buffer.isBuffer(key)) key = Buffer.from(key.slice(0, 32));
+  if (typeof key === "string") key = Buffer.from(key.slice(0, 32));
   const payloadStr = JSON.stringify(payload);
   const ivStr = randomBytes(8).toString("hex");
   const iv = Buffer.from(ivStr);
@@ -43,11 +50,12 @@ export function symmetricEncrypt(
 }
 
 /**
- * @description 
+ * @description decrypts a ciphered text to a plaintext with the symmetric key used in creating the cipher
  * @author moha_tangx
  * @date 21/05/2024
  * @param {string} cipherText
- * @param {{algorithm : string ,inputEncoding : import("crypto").Encoding,outputEncoding:import("crypto").Encoding}} options
+ * @param {import("crypto").KeyLike} key
+ * @param {{algorithm : string ,inputEncoding : import("crypto").Encoding,outputEncoding:import("crypto").Encoding}} options an options object with the structure of : ```{algorithm: string, inputEncoding: import("crypto").Encoding, outputEncoding: import("crypto").Encoding}```
  * @return {any}
  * @example const plainText =
   "almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop";
@@ -65,9 +73,13 @@ console.log(decryptedMessage);
 export function symmetricDecrypt(
   cipherText,
   key,
-  { algorithm = "aes256", inputEncoding = "hex", outputEncoding = "utf8" } = {}
+  { algorithm = "aes256", inputEncoding = "hex", outputEncoding = "utf8" } = {
+    algorithm: "aes256",
+    inputEncoding: "hex",
+    outputEncoding: "utf8",
+  }
 ) {
-  if (!Buffer.isBuffer(key)) key = Buffer.from(key.slice(0, 32));
+  if (typeof key === "string") key = Buffer.from(key.slice(0, 32));
   const [cipher, ivStr] = cipherText.split(".");
   const iv = Buffer.from(ivStr);
   const decipher = createDecipheriv(algorithm, key, iv);
@@ -81,6 +93,17 @@ export function symmetricDecrypt(
   }
 }
 
+/**
+ * @description asymmetric encryption
+ * @author moha_tangx
+ * @abstract
+ * @date 22/05/2024
+ * @param {any} payload
+ * @param {import("crypto").KeyLike} publicKey
+ * @param {import("crypto").Encoding} encoding
+ * @param {(publicKey:import("crypto").KeyLike,buffer:Buffer)=>Buffer} callback
+ * @returns
+ */
 function enc(payload, publicKey, encoding = "hex", callback) {
   payload = JSON.stringify(payload);
   const buff = Buffer.from(payload);
@@ -88,25 +111,81 @@ function enc(payload, publicKey, encoding = "hex", callback) {
   return encrypted.toString(encoding);
 }
 
+/**
+ * @description asymmetric decryption
+ * @author moha_tangx
+ * @abstract
+ * @date 22/05/2024
+ * @param {string} cipherText
+ * @param {import("crypto").KeyLike} publicKey
+ * @param {import("crypto").Encoding} encoding
+ * @param {(publicKey:import("crypto").KeyLike,buffer:Buffer)=>Buffer} callback
+ * @returns {string}
+ */
 function dec(cipherText, publicKey, encoding = "utf8", callback) {
   const buff = Buffer.from(cipherText, "hex");
   const decrypted = callback(publicKey, buff);
   return decrypted.toString(encoding);
 }
 
+/**
+ * @description contains the methods for public and private asymmetric decryption
+ */
 export const decrypt = {
+  /**
+   * @description
+   * @author moha_tangx
+   * @date 22/05/2024
+   * @param {string} cipherText
+   * @param {import("crypto").KeyLike} publicKey
+   * @param {import("crypto").Encoding} encoding
+   * @returns {string}
+   */
   public(cipherText, publicKey, encoding = "utf8") {
     return dec(cipherText, publicKey, (encoding = "utf8"), publicDecrypt);
   },
+
+  /**
+   *  @description
+   * @author moha_tangx
+   * @date 22/05/2024
+   * @param {string} cipherText
+   * @param {import("crypto").KeyLike} privateKey
+   * @param {import("crypto").Encoding} encoding
+   * @return {string}
+   */
   private(cipherText, privateKey, encoding = "utf8") {
     return dec(cipherText, privateKey, (encoding = "utf8"), privateDecrypt);
   },
 };
 
+/**
+ * @description contains the methods for public and private asymmetric encryption
+ */
+
 export const encrypt = {
+  /**
+   *  @description
+   * @author moha_tangx
+   * @date 22/05/2024
+   * @param {*} payload
+   * @param {import("crypto").KeyLike} publicKey
+   * @param {import("crypto").Encoding} encoding
+   * @return {string}
+   */
   public(payload, publicKey, encoding = "hex") {
     return enc(payload, publicKey, encoding, publicEncrypt);
   },
+
+  /**
+   *  @description
+   * @author moha_tangx
+   * @date 22/05/2024
+   * @param {*} payload
+   * @param {import("crypto").KeyLike} privateKey
+   * @param {import("crypto").Encoding} encoding
+   * @return {string}
+   */
   private(payload, privateKey, encoding = "hex") {
     return enc(payload, privateKey, encoding, privateEncrypt);
   },

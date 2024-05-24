@@ -2,13 +2,13 @@
 
 Mocrypt is a library built on top of the **node crypto** module that provides utility function to provide cryptographic functionalities such as hashing and verification of hash, encryption and decryption ,signing and verification and more.
 
-The module intends to provide basic functionalities of hashing, creation of symmetric and asymmetric keys generation, encryption , signing and signature verification and jsonwebtoken implementation.
+The module intends to provide basic functionalities of hashing, symmetric and asymmetric keys generation, encryption, signing and signature verification and jsonwebtoken implementation.
 
-Mocrypt provides some level of customization and make some rational decisions on choosing the algorithms and other choices that will suite the majority of users. Most of the methods provided have a synchronous and asynchronous versions
+Mocrypt provides high level of customization and make some rational decisions on choosing the algorithms and other choices that will suite majority of users. Most of the methods provided have a synchronous and asynchronous versions.
 
-- the synchronous version of the function returns the generated value (hash|token).
-- while the asynchronous versions takes a callback that takes the value (hash|token) as parameter.
-  For full having control and customization on those functionalities, using the crypto node module would be a better option.
+- the synchronous version of the function returns the generated value (hash|token|key|cipher).
+- while the asynchronous versions takes a callback that takes the value (hash|token|key|cipher) as parameter.
+  For having full control and customization on those functionalities, using the crypto node module would be a better option.
 
 ## METHODS:
 
@@ -21,9 +21,18 @@ Mocrypt provides some level of customization and make some rational decisions on
 - createToken
 - hash
 - hashSync
+- private
+- public
 - sign
+- symmetricDecrypt
+- symmetricEncrypt
 - verify
 - verifyToken
+
+## OBJECTS
+
+- decrypt
+- encrypt
 
 ## USAGE:
 

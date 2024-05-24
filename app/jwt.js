@@ -5,12 +5,6 @@ import { sign, verify } from "./sign.js";
 import { createDate } from "./utils/utils.js";
 
 /**
- * @param {any} id
- * @param {string} payload
- * @param {import("crypto").KeyLike} key
- */
-
-/**
  * @description creates a jsonwebtoken with an id, payload and an expiry date. 
  *  A private key is needed for signing the payload
  *  @example const { privateKey } = createKeyPairSync();

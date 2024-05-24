@@ -1,14 +1,13 @@
 // @ts-check
 "use strict";
 
-import { generatePassPhrase } from "./utils/utils.js";
-
 import {
   generateKeyPair,
   generateKeyPairSync,
   generateKey,
   generateKeySync,
   createHmac,
+  randomBytes,
 } from "crypto";
 
 /**
@@ -35,7 +34,11 @@ import {
   // -----END PUBLIC KEY-----
  */
 export function createKeyPairSync(
-  { length = 1024, encrypted = false, passPhrase = generatePassPhrase() } = {
+  {
+    length = 1024,
+    encrypted = false,
+    passPhrase = randomBytes(256).toString("hex"),
+  } = {
     length: 1024,
     encrypted: false,
     passPhrase: undefined,
@@ -54,6 +57,13 @@ export function createKeyPairSync(
       passphrase: encrypted ? passPhrase : undefined,
     },
   });
+  if (encrypted) {
+    return {
+      privateKey,
+      publicKey,
+      passPhrase,
+    };
+  }
   return { privateKey, publicKey };
 }
 
@@ -62,7 +72,7 @@ export function createKeyPairSync(
  * @author moha_tangx
  * @date 17/02/2024
  * @export createKeyPair 
- * @param {(privateKey:import("crypto").KeyLike,publicKey:import("crypto").KeyLike)=>void} callback the callback takes the private and public keys as parameters 
+ * @param {(privateKey:import("crypto").KeyLike,publicKey:import("crypto").KeyLike,passPhrase?:string)=>void} callback the callback takes the private and public keys as parameters 
  * @param {{length: number, encrypted: boolean,passPhrase:string | undefined}} options
  * @example createKeyPair((privateKey, publicKey) => {
   console.log(privateKey, publicKey);
@@ -85,7 +95,11 @@ export function createKeyPairSync(
  */
 export async function createKeyPair(
   callback,
-  { length = 1024, encrypted = false, passPhrase = generatePassPhrase() } = {
+  {
+    length = 1024,
+    encrypted = false,
+    passPhrase = randomBytes(256).toString("hex"),
+  } = {
     length: 1024,
     encrypted: false,
     passPhrase: undefined,
@@ -107,7 +121,11 @@ export async function createKeyPair(
       },
     },
     (err, publicKey, privateKey) => {
-      if (err) return err;
+      if (err) throw err;
+      if (encrypted) {
+        callback(privateKey, publicKey, passPhrase);
+        return;
+      }
       callback(privateKey, publicKey);
     }
   );

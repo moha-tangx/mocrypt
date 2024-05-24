@@ -1,16 +1,5 @@
-import words from "./words.json" assert { type: "json" };
-
-export function generatePassPhrase() {
-  const wordsArr = words.split(" ");
-  const passPhraseArr = [];
-  // set the loop to 100 rounds to make sure the length of the passPhrase is always not less than 512 bytes
-  for (let i = 0; i < 100; i++) {
-    const rand = Math.floor(Math.random() * wordsArr.length);
-    passPhraseArr.push(wordsArr[rand]);
-  }
-
-  return passPhraseArr.join(" ");
-}
+// @ts-check
+"use strict";
 
 /**
  * @description

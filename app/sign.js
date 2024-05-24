@@ -11,9 +11,10 @@ import { createSign, createVerify } from "crypto";
  * @author moha_tangx
  * @date 17/02/2024
  * @param {object} payload data to be signed it is converted to string before being signed
- * @param {import("crypto").KeyLike} privateKey your private key *recommended to be in an environment variable*
- * @param {import("crypto").BinaryToTextEncoding}[encoding="hex"] the encoding the signature is      outputted default to **hex**
- * @param {string} [algorithm="rsa-sha256"] the signing algorithm default to **rsa-sha256**
+ * @param {import("crypto").KeyLike} privateKey your private key *recommended to be kept secret*
+ * @param {{algorithm: string,encoding:import("crypto").BinaryToTextEncoding}}  options 
+ * option the encoding the signature is outputted default to **hex** the signing algorithm 
+ * default to **rsa-sha256**
  * @returns {string}
  * @example
  * const keys = createKeyPairSync();
@@ -21,7 +22,7 @@ const { privateKey, publicKey } = keys;
 
 let cookie = "some cookie to be sent to the user";
 
-const signature = Sign(cookie, privateKey);
+const signature = sign(cookie, privateKey);
 
 console.log(signature);
 // prints
@@ -30,8 +31,10 @@ console.log(signature);
 export function sign(
   payload,
   privateKey,
-  algorithm = "rsa-sha256",
-  encoding = "hex"
+  { algorithm = "rsa-sha256", encoding = "hex" } = {
+    algorithm: "rsa-sha256",
+    encoding: "hex",
+  }
 ) {
   if (typeof payload !== "string") payload = JSON.stringify(payload);
   const signer = createSign(algorithm).update(payload);
@@ -47,8 +50,7 @@ export function sign(
  * @date 17/02/2024
  * @param {string} token  includes the initial string and the signature
  * @param {import("crypto").KeyLike|import("crypto").JsonWebKeyInput} Key the public key or private key of the privatekey keyPair used in signing the string 
- * @param {string} [algorithm="rsa-sha256"]
- * @param {import("crypto").BinaryToTextEncoding} [encoding="hex"]
+ * @param {{algorithm:string,encoding:import("crypto").BinaryToTextEncoding}} options
  * @return {boolean}
  * @example
  * const keys = createKeyPairSync();
@@ -63,7 +65,14 @@ console.log(isVerified);
 // prints
 // true
  */
-export function verify(token, Key, algorithm = "rsa-sha256", encoding = "hex") {
+export function verify(
+  token,
+  Key,
+  { algorithm = "rsa-sha256", encoding = "hex" } = {
+    algorithm: "rsa-sha256",
+    encoding: "hex",
+  }
+) {
   const [payload, signature] = token.split(":");
   const verifier = createVerify(algorithm).update(payload);
   const isVerified = verifier.verify(Key, signature, encoding);
