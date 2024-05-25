@@ -19,7 +19,8 @@ import {
  * @param {string | Buffer | import("crypto").KeyLike} key symmetric key can be generated from the createKey or createKeySync methods
  * @param {{algorithm : string, inputEncoding : import("crypto").Encoding, outputEncoding:import("crypto").Encoding}} options an options object with the structure of : ```{algorithm: string, inputEncoding: import("crypto").Encoding, outputEncoding: import("crypto").Encoding}```
  * @return {string}
- * @example const plainText =
+ * @example 
+ * const plainText =
   "almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop";
 
 const key = createKeySync(); // key should be kept secret;

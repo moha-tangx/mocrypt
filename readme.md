@@ -1,6 +1,6 @@
 # MOCRYPT
 
-Mocrypt is a library built on top of the **node crypto** module that provides utility function to provide cryptographic functionalities such as hashing and verification of hash, encryption and decryption ,signing and verification and more.
+Mocrypt is a library built on top of the **node crypto** module that provides utility functions that provide cryptographic and data security functionalities such as hashing and verification of hash, encryption and decryption ,signing and verification and more.
 
 The module intends to provide basic functionalities of hashing, symmetric and asymmetric keys generation, encryption, signing and signature verification and jsonwebtoken implementation.
 
@@ -9,6 +9,28 @@ Mocrypt provides high level of customization and make some rational decisions on
 - the synchronous version of the function returns the generated value (hash|token|key|cipher).
 - while the asynchronous versions takes a callback that takes the value (hash|token|key|cipher) as parameter.
   For having full control and customization on those functionalities, using the crypto node module would be a better option.
+
+mocrypt provides a convenient syntax for working with optional parameters when developer needs a level of customization by using an options object parameter.
+example:
+
+```js
+import { createToken } from "../jwt.js";
+import { createKeyPairSync } from "../key.js";
+
+const { privateKey } = createKeyPairSync();
+
+const token = createToken(
+  { user_id: "b0406025-1c52-5ef6-afe4-d21384384632" },
+  privateKey,
+  {
+    exp_date: "24hrs",
+    algorithm: "rsa-sha256",
+    encoding: "base64",
+  }
+);
+```
+
+**notice** how the optional parameters are passed as object, so you can omit a parameter and you don't have to pass undefined.
 
 ## METHODS:
 
@@ -40,22 +62,22 @@ Mocrypt provides high level of customization and make some rational decisions on
 
 - synchronous
 
-  hashes piece of text (string) passed as argument **synchronously** (in a blocking code manner) using the {@link scryptSync } function of the node `crypto` module and returns the **hashed** **salted** text together with the salt in the default encoding of `hex` format separated by a colon.
+hashes piece of text (string) passed as argument **synchronously** (in a blocking code manner) using the {@link scryptSync } function of the node `crypto` module and returns the **hashed** **salted** text together with the salt in the default encoding of `hex` format separated by a colon.
 
 ```js
-import {hashSync, compareSync} from "mocrypt";
+import { hashSync, compareSync } from "mocrypt";
 
-const sensitive = "some sensitive data to be ciphered"
+const sensitive = "some sensitive data to be ciphered";
 const hashed = hashSync(sensitive);
- console.log(hashed);
+console.log(hashed);
 //logs:
 //bd72b72cb4e1...e86cdc:9fd0d1a34fe3...b2395d116ed
 
- const password = hashSync("myPassword_");
- const is correctPassword = compareSync(password, "myPassword_");
- console.log(correctPassword);
- //logs:
- //true
+const password = hashSync("myPassword_");
+const correctPassword = compareSync(password, "myPassword_");
+console.log(correctPassword);
+//logs:
+//true
 ```
 
 - asynchronous
@@ -125,8 +147,9 @@ console.log(verified);
 
 `creating a jsonwebtoken`
 
-creates a jsonwebtoken with an id, payload and an expiry date.
-A private key is needed for signing the payload
+generates a jsonwebtoken from the payload passed.
+A private key is needed for signing the payload.
+there is an optional expiry date field in the options object param
 
 ```js
 import { createToken } from "mocrypt";
@@ -134,9 +157,7 @@ import { createToken } from "mocrypt";
 const payload =
   "street known powder plates wall produce tip congress without balloon sand political note hurried combination choice buried particular radio feathers sale closely widely sudden";
 
-const id = { id: "1751af46-ec16-5b6b-b130-7caab8c8d3aa" };
-
-const token = createToken(id, payload, privateKey, "24hrs");
+const token = createToken(payload, privateKey, { exp_date: "24hrs" });
 
 console.log(token);
 
@@ -146,12 +167,11 @@ console.log(token);
 
 `verifying jsonwebtoken`
 
-verifies a jsonwebtoken created by the createToken function and returns a verifier function in the format of
+verifies a jsonwebtoken created by the createToken function and returns a verifier object in the format of:
 
 ```js
 {
-  id: any; // id passed,
-  exp_date: dateObject; //the expiry date of the token,
+  exp_date: dateString; //the expiry date of the token,
   expired: boolean; //if the token has expired or not,
   verified: boolean; //if the token is valid or not,
 }
@@ -164,17 +184,14 @@ const { privateKey } = createKeyPairSync();
 const payload =
   "street known powder plates wall produce tip congress without balloon sand political note hurried combination choice buried particular radio feathers sale closely widely sudden";
 
-const id = { id: "1751af46-ec16-5b6b-b130-7caab8c8d3aa" };
+const token = createToken(payload, privateKey, { exp_date: "24hrs" });
 
-const token = createToken(id, payload, privateKey, "24hrs");
-
-const verifier = verifyToken(token, privateKey, (id) => payload);
+const verifier = verifyToken(token, privateKey, payload);
 
 console.log(verifier);
 
 //logs:
 // {
-//   id: { id: '1751af46-ec16-5b6b-b130-7caab8c8d3aa' },
 //   exp_date: 2024-04-26T18:20:03.000Z,
 //   expired: false,
 //   verified: true
@@ -254,4 +271,66 @@ createKeyPair((privateKey, publicKey) => {
   // MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhfnIG...+aDELoqOfmWrN+f280rN4kC5V5WYdSMM7
   // -----END PUBLIC KEY-----
  */
+```
+
+the `createKeyPairSync()` and `createKeyPair()` methods returns an object with **pubicKey**, **privateKey** and a **"passphrase"**, when the encrypted option is set to true the passphrase is returned otherwise it will be **"undefined".**
+
+### symmetric encryption and decryption
+
+#### symmetric encryption with the `symmetricEncrypt` method
+
+encrypts a plaintext (can be in any format) to a ciphered Text with a symmetric key
+
+```js
+import { symmetricEncrypt, symmetricDecrypt } from "mocrypt";
+import { createKeySync } from "mocrypt";
+
+const plainText =
+  "almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop";
+
+const key = createKeySync(); // key should be kept secret;
+
+const encryptedMessage = symmetricEncrypt(plainText, key);
+console.log(encryptedMessage);
+// logs: 40342898d80280aa4d4e85f138f456a4847341b1770c3c9557ce0ad9a4e4d6ab6bb251ea8c33d...57b23561fd608a3e12174f7f0202f641136c990fa8a8bb8bcae79d30a6f13c1ad8b631ff6a023fd.5c16c59003fe1fe1
+```
+
+#### symmetric decryption with the `symmetricDecrypt` method
+
+decrypts a ciphered text to a plaintext with the symmetric key used in creating the cipher
+
+```js
+const decryptedMessage = symmetricDecrypt(encryptedMessage, key);
+console.log(decryptedMessage);
+// logs: almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop
+```
+
+### asymmetric encryption and decryption
+
+the `encrypt` and `decrypt` objects provided by the mocrypt library are for asymmetric encryption and decryption respectively.Both objects provides two methods private and public for public and private encryption and decryption.
+
+```js
+import { createKeyPairSync } from "../key.js";
+import { encrypt, decrypt } from "../encrypt.js";
+
+const { privateKey, publicKey } = createKeyPairSync();
+
+const plainText = "some plainText to be encrypted";
+
+const encryptedMessage = encrypt.private(plainText, privateKey);
+
+const decryptedMessage = decrypt.public(encryptedMessage, publicKey);
+
+console.log("encryptedMessage: ", encryptedMessage);
+console.log("decryptedMessage: ", decryptedMessage);
+
+//logs: encryptedMessage:  9a7a6f95e8b467fea1f98216d341a8707f22826e44692884f8c012336...247b12c854382f85859f3de31b367da58ce4776f4aacacbe3c07b8c83ce76a402d19ba
+//decryptedMessage:  "some plainText to be encrypted"
+```
+
+a private key can be used to publicly(decrypt.public) decrypt a message encrypted with a private key
+i.e
+
+```js
+const decryptedMessage = decrypt.public(encryptedMessage, privateKey); //valid
 ```

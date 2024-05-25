@@ -1,6 +1,8 @@
 // @ts-check
 "use strict";
 
+// TODOS: create privateKey() , create publickey() methods to be added
+
 import {
   generateKeyPair,
   generateKeyPairSync,
