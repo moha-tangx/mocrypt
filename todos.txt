@@ -1,0 +1,6 @@
+ TODOS:
+ add the functionalities to create individual privateKey and publicKey (not in pairs) 
+ create privateKey() , create publicKey() methods to be added to the "key" module.
+
+ UPDATES: 
+    --make the async functions promise based...
