@@ -76,8 +76,16 @@ export async function hash(
   }
 ) {
   const salt = randomBytes(length).toString(encoding);
+
+  if (!callback) {
+    return new Promise((resolve, reject) => {
+      scrypt(plainText, salt, length, (err, hash) => {
+        if (err) reject(err);
+        resolve(`${salt}:${hash.toString(encoding)}`);
+      });
+    });
+  }
   scrypt(plainText, salt, length, (err, hash) => {
-    if (err) throw err;
     callback(`${salt}:${hash.toString(encoding)}`, err);
   });
 }
