@@ -74,8 +74,11 @@ export function createKeyPairSync(
  * @author moha_tangx
  * @date 17/02/2024
  * @export createKeyPair 
- * @param {(privateKey:import("crypto").KeyLike,publicKey:import("crypto").KeyLike,passPhrase?:string)=>void} callback the callback takes the private and public keys as parameters 
- * @param {{length: number, encrypted: boolean,passPhrase:string | undefined}} options
+ *  @param {(error:Error,privateKey:import("crypto").KeyLike,publicKey:import("crypto").KeyLike,passPhrase?:string)=>void} callback the callback takes the private and public keys as parameters 
+ * @param {{algorithm:"rsa"|"dsa"|"ec"|"res-pss"|"x448"|"x25519"|"ed25519"|"ed448",
+ * length: number, 
+ * encrypted: boolean,
+ * passPhrase:string | undefined}} options
  * @example createKeyPair((privateKey, publicKey) => {
   console.log(privateKey, publicKey);
   });
@@ -94,21 +97,23 @@ export function createKeyPairSync(
   // -----BEGIN PUBLIC KEY-----
   // MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhfnIG...+aDELoqOfmWrN+f280rN4kC5V5WYdSMM7
   // -----END PUBLIC KEY-----
- */
-export async function createKeyPair(
+ */ export async function createKeyPair(
   callback,
   {
+    algorithm = "rsa",
     length = 1024,
     encrypted = false,
     passPhrase = randomBytes(256).toString("hex"),
   } = {
+    algorithm: "rsa",
     length: 1024,
     encrypted: false,
     passPhrase: undefined,
   }
 ) {
   generateKeyPair(
-    "rsa",
+    // @ts-ignore
+    algorithm,
     {
       modulusLength: length, // the length of your key in bits
       publicKeyEncoding: {
@@ -123,12 +128,10 @@ export async function createKeyPair(
       },
     },
     (err, publicKey, privateKey) => {
-      if (err) throw err;
       if (encrypted) {
-        callback(privateKey, publicKey, passPhrase);
-        return;
+        callback(err, privateKey, publicKey, passPhrase);
       }
-      callback(privateKey, publicKey);
+      callback(err, privateKey, publicKey);
     }
   );
 }
@@ -158,7 +161,7 @@ export async function createKey(
 ) {
   generateKey(type, { length }, (err, keyObject) => {
     const key = keyObject.export().toString(encoding);
-    callback(key, err);
+    if (callback) callback(key, err);
   });
 }
 

@@ -76,15 +76,6 @@ export async function hash(
   }
 ) {
   const salt = randomBytes(length).toString(encoding);
-
-  if (!callback) {
-    return new Promise((resolve, reject) => {
-      scrypt(plainText, salt, length, (err, hash) => {
-        if (err) reject(err);
-        resolve(`${salt}:${hash.toString(encoding)}`);
-      });
-    });
-  }
   scrypt(plainText, salt, length, (err, hash) => {
     callback(`${salt}:${hash.toString(encoding)}`, err);
   });
@@ -117,25 +108,9 @@ export async function compare(
   }
 ) {
   const [salt, key] = hashed.split(":");
-  /**
-   * @param {(match: boolean, error: Error | null) => void} callback
-   */
-  function comp(callback) {
-    scrypt(plainText, salt, length, (error, hashedBuffer) => {
-      const keyBuffer = Buffer.from(key, encoding);
-      const match = timingSafeEqual(hashedBuffer, keyBuffer);
-      callback(match, error);
-    });
-  }
-  if (!callback) {
-    return new Promise((resolve, reject) => {
-      comp((match, error) => {
-        if (error) reject(error);
-        resolve(match);
-      });
-    });
-  }
-  comp((match, error) => {
+  scrypt(plainText, salt, length, (error, hashedBuffer) => {
+    const keyBuffer = Buffer.from(key, encoding);
+    const match = timingSafeEqual(hashedBuffer, keyBuffer);
     callback(match, error);
   });
 }
