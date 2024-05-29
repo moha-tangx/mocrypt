@@ -15,7 +15,7 @@ import { createSign, createVerify } from "crypto";
  * @param {{algorithm: string,encoding:import("crypto").BinaryToTextEncoding}}  options 
  * option the encoding the signature is outputted default to **hex** the signing algorithm 
  * default to **rsa-sha256**
- * @returns {string}
+ * @returns {{signature:string,payload:string}}
  * @example
  * const keys = createKeyPairSync();
 const { privateKey, publicKey } = keys;
@@ -36,10 +36,10 @@ export function sign(
     encoding: "hex",
   }
 ) {
-  if (typeof payload !== "string") payload = JSON.stringify(payload);
+  payload = JSON.stringify(payload);
   const signer = createSign(algorithm).update(payload);
   const signature = signer.sign(privateKey, encoding);
-  return `${payload}:${signature}`;
+  return { signature, payload };
 }
 
 // VERIFY
@@ -48,7 +48,8 @@ export function sign(
  * verifies a  signature ( signed string) with a public key a private key can also be used to verify the signature
  * @author moha_tangx
  * @date 17/02/2024
- * @param {string} token  includes the initial string and the signature
+ * @param {string} signature  includes the initial string and the signature
+ * @param {string} payload  includes the initial string and the signature
  * @param {import("crypto").KeyLike|import("crypto").JsonWebKeyInput} Key the public key or private key of the privatekey keyPair used in signing the string 
  * @param {{algorithm:string,encoding:import("crypto").BinaryToTextEncoding}} options
  * @return {boolean}
@@ -66,14 +67,17 @@ console.log(isVerified);
 // true
  */
 export function verify(
-  token,
+  signature,
+  payload,
   Key,
   { algorithm = "rsa-sha256", encoding = "hex" } = {
     algorithm: "rsa-sha256",
     encoding: "hex",
   }
 ) {
-  const [payload, signature] = token.split(":");
+  if (typeof payload !== "string") {
+    payload = JSON.stringify(payload);
+  }
   const verifier = createVerify(algorithm).update(payload);
   const isVerified = verifier.verify(Key, signature, encoding);
   return isVerified;

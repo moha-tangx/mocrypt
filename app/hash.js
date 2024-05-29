@@ -11,16 +11,19 @@ import { randomBytes, scryptSync, timingSafeEqual, scrypt } from "crypto";
  * @date 17/02/2024
  * @export hashSync
  * @param {string} plainText
- * @param {BufferEncoding} encoding
+ * @param {{encoding:BufferEncoding,length:number}} options
  * @return {string}
  * @example const hashed = hashSync("sensitive");
  * console.log(hashed);
  * //prints
  * //bd72b72cb4e1...e86cdc:9fd0d1a34fe3...b2395d116ed
  */
-export function hashSync(plainText, encoding = "hex") {
+export function hashSync(
+  plainText,
+  { encoding = "hex", length = 64 } = { encoding: "hex", length: 64 }
+) {
   const salt = randomBytes(64).toString(encoding);
-  const hashedText = scryptSync(plainText, salt, 64).toString("hex");
+  const hashedText = scryptSync(plainText, salt, length).toString(encoding);
   return `${salt}:${hashedText}`;
 }
 
@@ -33,7 +36,7 @@ export function hashSync(plainText, encoding = "hex") {
  * @export compareSync
  * @param {string} hashed the hashed string
  * @param {string} plainText the string to be compared with,
- * @param {BufferEncoding} encoding the encoding of the hashed string
+ * @param {{encoding:import("crypto").BinaryToTextEncoding,length:number}} options options object the encoding and length of the hashed string
  * @return {boolean}
  * @example
  * const password = hashSync("myPassword_");
@@ -42,9 +45,13 @@ export function hashSync(plainText, encoding = "hex") {
  * //prints
  * //true
  */
-export function compareSync(hashed, plainText, encoding = "hex") {
+export function compareSync(
+  hashed,
+  plainText,
+  { encoding = "hex", length = 64 } = { encoding: "hex", length: 64 }
+) {
   const [salt, key] = hashed.split(":");
-  const hashedBuffer = scryptSync(plainText, salt, 64);
+  const hashedBuffer = scryptSync(plainText, salt, length);
   const keyBuffer = Buffer.from(key, encoding);
   const match = timingSafeEqual(hashedBuffer, keyBuffer);
   return match;

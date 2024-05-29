@@ -97,7 +97,8 @@ export function createKeyPairSync(
   // -----BEGIN PUBLIC KEY-----
   // MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhfnIG...+aDELoqOfmWrN+f280rN4kC5V5WYdSMM7
   // -----END PUBLIC KEY-----
- */ export async function createKeyPair(
+ */
+export async function createKeyPair(
   callback,
   {
     algorithm = "rsa",

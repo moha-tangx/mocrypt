@@ -38,12 +38,10 @@ export function createToken(
   const expDate =
     exp_date && Buffer.from(createDate(exp_date).toString()).toString(encoding);
   payload = JSON.stringify(payload);
-  const signed = sign(payload, key, {
+  const { signature: signed } = sign(payload, key, {
     algorithm,
     encoding,
-  })
-    .split(":")
-    .at(-1);
+  });
   const encodedPayload = Buffer.from(payload).toString(encoding);
   const token = expDate
     ? `${encodedPayload}.${signed}.${expDate}`
