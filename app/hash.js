@@ -1,7 +1,6 @@
 // @ts-check
 "use strict";
 
-import { error } from "console";
 import { randomBytes, scryptSync, timingSafeEqual, scrypt } from "crypto";
 
 /**
@@ -121,3 +120,10 @@ export async function compare(
     callback(match, error);
   });
 }
+
+export default {
+  hash,
+  compare,
+  hashSync,
+  compareSync,
+};

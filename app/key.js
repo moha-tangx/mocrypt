@@ -190,3 +190,10 @@ export function createKeySync(
   const keyObject = generateKeySync(type, { length });
   return keyObject.export().toString(encoding);
 }
+
+export default {
+  createKey,
+  createKeySync,
+  createKeyPair,
+  createKeyPairSync,
+};

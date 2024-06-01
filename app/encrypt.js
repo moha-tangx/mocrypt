@@ -191,3 +191,10 @@ export const encrypt = {
     return enc(payload, privateKey, encoding, privateEncrypt);
   },
 };
+
+export default {
+  encrypt,
+  decrypt,
+  symmetricDecrypt,
+  symmetricEncrypt,
+};

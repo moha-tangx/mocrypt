@@ -1,9 +1,15 @@
 {
   "name": "mocrypt",
-  "version": "1.0.0",
-  "description": "module for data encryption",
+  "version": "1.1.0",
+  "description": "this module provides utility functions for data security and integrity such as encryption, hashing, jsonwebtoken implementation, digital signature and verification",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./promises": "./app/promises/index.js"
+  },
+  "pricing": "Free",
   "type": "module",
+  "packageManager": "npm@10.2.4",
   "scripts": {
     "dev": "nodemon --env-file .env ./index.js",
     "start": "node --env-file .env ./index.js"

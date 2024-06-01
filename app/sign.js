@@ -82,3 +82,8 @@ export function verify(
   const isVerified = verifier.verify(Key, signature, encoding);
   return isVerified;
 }
+
+export default {
+  sign,
+  verify,
+};

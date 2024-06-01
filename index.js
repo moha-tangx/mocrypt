@@ -1,58 +1,49 @@
 // @ts-check
 "use strict";
 
-import { hashSync, compareSync, hash, compare } from "./app/hash.js";
+import hasher, { compare, compareSync, hash, hashSync } from "./app/hash.js";
 
-import { createToken, verifyToken } from "./app/jwt.js";
+import jwt, { createToken, verifyToken } from "./app/jwt.js";
 
-import {
-  createKeyPairSync,
-  createKeyPair,
+import keys, {
   createKey,
+  createKeyPair,
+  createKeyPairSync,
   createKeySync,
 } from "./app/key.js";
 
-import { sign, verify } from "./app/sign.js";
+import signer, { sign, verify } from "./app/sign.js";
 
-import {
-  symmetricEncrypt,
-  symmetricDecrypt,
-  encrypt,
+import encryptor, {
   decrypt,
+  encrypt,
+  symmetricDecrypt,
+  symmetricEncrypt,
 } from "./app/encrypt.js";
 
 export {
-  hashSync,
-  compareSync,
-  hash,
   compare,
-  createKeyPairSync,
-  createKeyPair,
+  compareSync,
   createKey,
+  createKeyPair,
+  createKeyPairSync,
   createKeySync,
-  sign,
-  verify,
   createToken,
-  verifyToken,
-  symmetricEncrypt,
-  symmetricDecrypt,
-  encrypt,
   decrypt,
+  encrypt,
+  hash,
+  hashSync,
+  sign,
+  symmetricDecrypt,
+  symmetricEncrypt,
+  verify,
+  verifyToken,
 };
 
 export default {
-  hashSync,
-  compareSync,
-  hash,
-  compare,
-  createKeyPairSync,
-  createKeyPair,
-  createKey,
-  createKeySync,
-  sign,
-  verify,
-  createToken,
-  verifyToken,
-  encrypt,
-  decrypt,
+  encryptor,
+  hasher,
+  jwt,
+  keys,
+  signer,
 };

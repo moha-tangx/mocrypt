@@ -7,15 +7,15 @@ The module intends to provide basic functionalities of hashing, symmetric and as
 Mocrypt provides high level of customization and make some rational decisions on choosing the algorithms and other choices that will suite majority of users. Most of the methods provided have a synchronous and asynchronous versions.
 
 - the synchronous version of the function returns the generated value (hash|token|key|cipher).
-- while the asynchronous versions takes a callback that takes the value (hash|token|key|cipher) as parameter.
+- while the asynchronous callback based versions takes a callback that takes the value (hash|token|key|cipher) as parameter.
   For having full control and customization on those functionalities, using the crypto node module would be a better option.
+- promise based versions that returns a promise are exposed through "`mocrypt/promises`" submodule (**since** version 1.1.0)
 
 mocrypt provides a convenient syntax for working with optional parameters when developer needs a level of customization by using an options object parameter.
 example:
 
 ```js
-import { createToken } from "../jwt.js";
-import { createKeyPairSync } from "../key.js";
+import { createToken, createKeyPairSync } from "mocrypt";
 
 const { privateKey } = createKeyPairSync();
 
@@ -31,6 +31,8 @@ const token = createToken(
 ```
 
 **notice** how the optional parameters are passed as object, so you can omit a parameter and you don't have to pass undefined.
+
+The default export exposes 5 objects hasher, keys, signer, jwt and encryptor which contains the methods of the named export but in a more relational (separation of concerns) manner where each object exposes method on specific related actions.(**since:** version 1.1.0.)
 
 ## METHODS:
 
@@ -55,6 +57,11 @@ const token = createToken(
 
 - decrypt
 - encrypt
+- hasher
+- keys
+- signer
+- jwt
+- encryptor
 
 ## USAGE:
 
@@ -80,13 +87,12 @@ console.log(correctPassword);
 //true
 ```
 
-- asynchronous
+- asynchronous callback-based
 
   compares a plaintext (string) **_synchronously_** to a **hashed** string and returns true if it matches or false if doesn't.
 
 ```js
 import { hash, compare } from "mocrypt";
-
 hash("some data to hash", (hash) => console.log(hash));
 // logs:
 //a814993bf3e...9a56670b50fdcbcecea261:6e8daa7aebbf87736c8b15dd229365372d5...2d0fe996360b5fa05864333d0637c96667573e9dd5b7bc1
@@ -211,7 +217,7 @@ console.log(key);
 // 0bb8edf36d92e17307ab845150...281216b59801bdb353e052b826c2e51ea64a0aa305c107ede03a
 ```
 
-- asynchronous
+- asynchronous callback-based
   generate a random key using the generateKey function of the node `crypto` module which internally uses the createHmac function of the node `crypto` module
 
 ```js
@@ -249,7 +255,7 @@ console.log(publicKey);
 // -----END PUBLIC KEY-----
 ```
 
-- asynchronous
+- asynchronous callback-based
 
 creates a public and private keys asynchronously
 
@@ -282,8 +288,7 @@ the `createKeyPairSync()` and `createKeyPair()` methods returns an object with *
 encrypts a plaintext (can be in any format) to a ciphered Text with a symmetric key
 
 ```js
-import { symmetricEncrypt, symmetricDecrypt } from "mocrypt";
-import { createKeySync } from "mocrypt";
+import { symmetricEncrypt, symmetricDecrypt, createKeySync } from "mocrypt";
 
 const plainText =
   "almost next test tin start equipment possible previous useful clock particularly door beside ship fierce only do brother pipe chosen donkey drive north stop";
@@ -310,8 +315,8 @@ console.log(decryptedMessage);
 the `encrypt` and `decrypt` objects provided by the mocrypt library are for asymmetric encryption and decryption respectively.Both objects provides two methods private and public for public and private encryption and decryption.
 
 ```js
-import { createKeyPairSync } from "../key.js";
-import { encrypt, decrypt } from "../encrypt.js";
+import { createKeyPairSync } from "mocrypt";
+import { encrypt, decrypt } from "mocrypt";
 
 const { privateKey, publicKey } = createKeyPairSync();
 

@@ -101,3 +101,8 @@ export function verifyToken(
     verified,
   };
 }
+
+export default {
+  createToken,
+  verifyToken,
+};
